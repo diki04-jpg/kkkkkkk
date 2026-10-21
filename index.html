@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="인구수 기준 한도액으로 지자체 협력사업 신청을 자동 판정합니다.">
+  <title>지자체 협력사업 예산 판정</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:#172b4d;background:#f5f7fb;font-synthesis:none;text-rendering:optimizeLegibility}
+    *{box-sizing:border-box}body{margin:0}.wrap{max-width:1080px;margin:auto;padding:42px 22px 56px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.13em;color:#2457d6}h1{margin:9px 0;font-size:clamp(26px,4vw,36px);letter-spacing:-.04em}.intro{margin:0;color:#66758b;line-height:1.65}.rule{display:inline-flex;flex-wrap:wrap;gap:9px;margin:20px 0 24px;padding:11px 14px;border:1px solid #d7e2ff;border-radius:10px;background:#eaf0ff;color:#2147aa;font-size:14px;font-weight:700}
+    .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:20px}.card,.panel{background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 3px 12px #22335a08}.card{padding:17px 19px}.label{color:#66758b;font-size:13px;font-weight:650}.value{margin-top:7px;font-size:27px;font-weight:800;letter-spacing:-.03em}.unit{margin-left:5px;color:#66758b;font-size:14px;font-weight:600}
+    .panel{overflow:hidden}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 19px;border-bottom:1px solid #e2e8f0}h2{margin:0;font-size:17px}.meta{color:#718096;font-size:12px}.table-wrap{overflow-x:auto}table{width:100%;min-width:670px;border-collapse:collapse}th,td{padding:13px 18px;border-bottom:1px solid #edf0f5;text-align:right;white-space:nowrap;font-size:14px}th{background:#f8faff;color:#62718a;font-size:12px;font-weight:750}th:first-child,td:first-child{text-align:left}tbody tr:last-child td{border-bottom:0}.name{font-weight:700}.badge{display:inline-block;min-width:50px;padding:5px 9px;border-radius:999px;text-align:center;font-size:12px;font-weight:800}.ok{background:#e6f6ef;color:#087a55}.no{background:#fff0ed;color:#b42318}.note{padding:13px 19px;border-top:1px solid #e2e8f0;color:#718096;font-size:12px}.error{margin:16px 0;padding:12px 14px;border:1px solid #f3c7c2;border-radius:9px;background:#fff5f3;color:#9f241c;font-size:14px}.actions{display:flex;align-items:center;gap:10px}.button{padding:8px 11px;border:1px solid #d8e0ec;border-radius:8px;background:#fff;color:#24416e;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.button:hover{background:#f5f8ff}.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}footer{margin-top:16px;color:#8290a4;font-size:12px}
+    @media(max-width:640px){.wrap{padding:28px 14px 42px}.summary{gap:8px}.card{padding:14px 11px}.value{font-size:21px}.unit{display:block;margin:3px 0 0}.panel-head{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="eyebrow">LOCAL GOVERNMENT · BUDGET REVIEW</div>
+    <h1>지자체 협력사업 예산 판정</h1>
+    <p class="intro">인구 기준 한도액을 계산해 신청 건별 승인 여부를 자동으로 확인합니다.</p>
+    <div class="rule" aria-label="심사 기준"><span>한도액 = 인구수 × 10</span><span aria-hidden="true">·</span><span>신청액이 한도액보다 크면 반려, 같거나 작으면 승인</span></div>
+
+    <section class="summary" aria-label="심사 요약">
+      <article class="card"><div class="label">승인 건수</div><div class="value" id="approved-count">-</div></article>
+      <article class="card"><div class="label">반려 건수</div><div class="value" id="rejected-count">-</div></article>
+      <article class="card"><div class="label">승인 신청액 합계</div><div class="value" id="approved-total">-</div></article>
+    </section>
+
+    <section class="panel" aria-labelledby="table-title">
+      <div class="panel-head">
+        <h2 id="table-title">신청 현황 <span class="meta" id="record-count"></span></h2>
+        <div class="actions"><span class="meta" id="source-status" role="status">JSON 파일을 불러오는 중입니다.</span><label class="button" for="json-file">JSON 선택</label><input class="visually-hidden" id="json-file" type="file" accept="application/json,.json"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">지자체명</th><th scope="col">인구수</th><th scope="col">신청액</th><th scope="col">한도액</th><th scope="col">판정</th></tr></thead>
+          <tbody id="applications"><tr><td colspan="5" style="text-align:center;color:#718096">자료를 불러오는 중입니다.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="note">금액 단위: 원 · 한도액은 인구수에 10을 곱해 계산합니다.</div>
+    </section>
+    <div id="error-message" class="error" role="alert" hidden></div>
+    <footer>자료: 신청목록(1).json · 자료 파일을 페이지와 같은 위치에 두면 자동으로 읽습니다.</footer>
+  </main>
+<script>
+(() => {
+  "use strict";
+  const fmt = value => Number(value).toLocaleString("ko-KR");
+  const tbody = document.getElementById("applications");
+  const status = document.getElementById("source-status");
+  const error = document.getElementById("error-message");
+
+  function showRows(records, sourceLabel) {
+    if (!Array.isArray(records) || records.length !== 10) {
+      throw new Error("JSON에는 지자체 신청 자료 10건이 있어야 합니다.");
+    }
+    let approvedCount = 0;
+    let rejectedCount = 0;
+    let approvedTotal = 0;
+    const fragment = document.createDocumentFragment();
+
+    records.forEach((record, index) => {
+      const name = record["지자체명"];
+      const population = Number(record["인구수"]);
+      const amount = Number(record["신청액"]);
+      if (typeof name !== "string" || !name.trim() || !Number.isFinite(population) || population < 0 || !Number.isFinite(amount) || amount < 0) {
+        throw new Error(`${index + 1}번째 자료의 지자체명·인구수·신청액을 확인해 주세요.`);
+      }
+      const limit = population * 10;
+      const approved = amount <= limit;
+      if (approved) { approvedCount += 1; approvedTotal += amount; }
+      else { rejectedCount += 1; }
+
+      const row = document.createElement("tr");
+      const values = [name, fmt(population), fmt(amount), fmt(limit)];
+      values.forEach((value, column) => {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        if (column === 0) cell.className = "name";
+        row.appendChild(cell);
+      });
+      const decisionCell = document.createElement("td");
+      const badge = document.createElement("span");
+      badge.className = `badge ${approved ? "ok" : "no"}`;
+      badge.textContent = approved ? "승인" : "반려";
+      decisionCell.appendChild(badge);
+      row.appendChild(decisionCell);
+      fragment.appendChild(row);
+    });
+
+    tbody.replaceChildren(fragment);
+    document.getElementById("approved-count").innerHTML = `${approvedCount}<span class="unit">건</span>`;
+    document.getElementById("rejected-count").innerHTML = `${rejectedCount}<span class="unit">건</span>`;
+    document.getElementById("approved-total").innerHTML = `${fmt(approvedTotal)}<span class="unit">원</span>`;
+    document.getElementById("record-count").textContent = `· ${records.length}건`;
+    status.textContent = sourceLabel;
+    error.hidden = true;
+  }
+
+  function showError(message) {
+    error.textContent = message;
+    error.hidden = false;
+    status.textContent = "자료를 불러오지 못했습니다.";
+    tbody.replaceChildren();
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 5;
+    cell.textContent = "같은 폴더의 JSON 파일을 확인하거나 ‘JSON 선택’으로 파일을 불러와 주세요.";
+    cell.style.textAlign = "center";
+    cell.style.color = "#718096";
+    row.appendChild(cell);
+    tbody.appendChild(row);
+  }
+
+  async function loadDefaultJson() {
+    try {
+      const response = await fetch("./신청목록(1).json", { cache: "no-store" });
+      if (!response.ok) throw new Error("신청목록(1).json 파일을 찾지 못했습니다.");
+      showRows(await response.json(), "신청목록(1).json 자동 불러옴");
+    } catch (err) {
+      showError(`${err.message} 로컬 파일로 열었거나 배포 폴더에 JSON이 없을 수 있습니다.`);
+    }
+  }
+
+  document.getElementById("json-file").addEventListener("change", async event => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+      showRows(JSON.parse(await file.text()), `${file.name} 불러옴`);
+    } catch (err) {
+      showError(`JSON을 읽을 수 없습니다: ${err.message}`);
+    }
+  });
+
+  loadDefaultJson();
+})();
+</script>
+</body>
+</html>
